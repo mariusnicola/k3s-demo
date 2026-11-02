@@ -1,0 +1,28 @@
+name: batchtracker-line
+services:
+  line:
+    container_name: batchtracker-line
+    image: ${LINE_IMAGE:?run deploy/setup.ps1}
+    restart: unless-stopped
+    # Docker's default of 10 s cuts the 15 s a walk gets to finish.
+    stop_grace_period: 30s
+    mem_limit: ${CAP_LINE_MEMORY:?run deploy/setup.ps1}
+    cpus: ${CAP_LINE_CPU:?run deploy/setup.ps1}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - 127.0.0.1:5321:8080
+      - <HOST_IP>:5321:8080
+    environment:
+      DOTNET_gcServer: "0"
+      API_URL: http://<INGRESS_IP>
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?run deploy/setup.ps1}
+      LINE_MACHINE_TOKEN: ${LINE_MACHINE_TOKEN:?run deploy/setup.ps1}
+      ALLOWED_ORIGINS: http://<INGRESS_IP>
+      # The ingress reaches this port from k3s-node2's address.
+      TRUSTED_PROXIES: <AGENT_IP>/32
+      COOKIE_SECURE: "false"
+      Logging__LogLevel__Default: Warning

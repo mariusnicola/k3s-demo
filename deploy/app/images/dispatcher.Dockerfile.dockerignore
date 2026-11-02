@@ -1,0 +1,5 @@
+# Host bin and obj hold Windows paths that break a Linux restore, and change on every host build.
+**/bin
+**/obj
+web
+tests

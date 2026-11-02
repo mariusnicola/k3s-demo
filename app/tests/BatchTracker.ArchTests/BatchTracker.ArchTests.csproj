@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
+    <PackageReference Include="NetArchTest.Rules" Version="1.3.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BatchTracker.Api\BatchTracker.Api.csproj" />
+    <ProjectReference Include="..\..\src\BatchTracker.Worker\BatchTracker.Worker.csproj" />
+    <ProjectReference Include="..\..\src\BatchTracker.Dispatcher\BatchTracker.Dispatcher.csproj" />
+    <ProjectReference Include="..\..\src\BatchTracker.Live\BatchTracker.Live.csproj" />
+    <ProjectReference Include="..\..\src\BatchTracker.Line\BatchTracker.Line.csproj" />
+  </ItemGroup>
+</Project>

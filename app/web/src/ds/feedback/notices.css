@@ -1,0 +1,97 @@
+/* Banner */
+.ds-banner {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--tone-bg);
+  color: var(--tone-fg);
+  border: 1px solid var(--tone-border);
+  border-radius: var(--radius-lg);
+}
+.ds-banner > .ds-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 1px;
+}
+.ds-banner-body {
+  min-width: 0;
+  flex: 1;
+}
+.ds-banner-title {
+  font-weight: var(--weight-bold);
+}
+.ds-banner-text {
+  margin-top: 2px;
+  max-width: var(--measure);
+}
+.ds-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* Empty and error */
+.ds-empty,
+.ds-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--text-secondary);
+}
+.ds-empty > .ds-icon,
+.ds-error-state > .ds-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-bottom: var(--space-1);
+}
+.ds-error-state > .ds-icon {
+  color: var(--tone-danger-fg);
+}
+.ds-empty-title {
+  font-weight: var(--weight-bold);
+  font-size: var(--size-md);
+  color: var(--text-primary);
+}
+.ds-empty-text {
+  max-width: 44ch;
+}
+.ds-empty-action {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+/* Notices that come and go with a connection. They float, or hold a reserved line, so the page never moves. */
+.ds-banner[data-floating] {
+  z-index: var(--z-sticky);
+  width: min(26rem, calc(100% - 2 * var(--space-3)));
+  box-shadow: var(--shadow-overlay);
+}
+.ds-banner[data-floating="panel"] {
+  position: absolute;
+  inset-block-end: var(--space-3);
+  inset-inline-end: var(--space-3);
+}
+.ds-banner[data-floating="page"] {
+  position: fixed;
+  inset-block-end: var(--space-4);
+  inset-inline-start: var(--space-4);
+  z-index: var(--z-overlay);
+  width: min(26rem, calc(100vw - 2 * var(--space-4)));
+}
+.ds-live-note {
+  min-height: calc(var(--size-xs) * var(--leading-normal));
+  font-size: var(--size-xs);
+  color: var(--text-secondary);
+}
+@media (max-width: 720px) {
+  .ds-live-note {
+    min-height: calc(2 * var(--size-xs) * var(--leading-normal));
+  }
+}

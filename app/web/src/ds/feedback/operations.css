@@ -1,0 +1,88 @@
+/* A toast: fixed top right, so it never moves the page. Past its height it scrolls inside. */
+.ds-operations {
+  display: grid;
+  gap: var(--space-2);
+}
+.ds-operations:has(.ds-operation) {
+  position: fixed;
+  inset-block-start: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: var(--z-overlay);
+  width: min(24rem, calc(100vw - 2 * var(--space-4)));
+  max-height: 70dvh;
+  overflow-y: auto;
+  pointer-events: none;
+}
+.ds-operations[data-inline]:has(.ds-operation) {
+  position: static;
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  pointer-events: auto;
+}
+.ds-operations[data-inline] .ds-operation {
+  box-shadow: none;
+}
+@media (max-width: 720px) {
+  .ds-operations:not([data-inline]):has(.ds-operation) {
+    inset-block-start: var(--space-2);
+    inset-inline-end: var(--space-2);
+    width: calc(100vw - 2 * var(--space-2));
+  }
+}
+.ds-operation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--tone-info-fg);
+  border-radius: var(--radius-md);
+  background: var(--tone-info-bg);
+  color: var(--tone-info-fg);
+  box-shadow: var(--shadow-overlay);
+  pointer-events: auto;
+}
+.ds-operation[data-tone="warning"] {
+  border-color: var(--tone-warning-fg);
+  background: var(--tone-warning-bg);
+  color: var(--tone-warning-fg);
+}
+.ds-operation[data-tone="success"] {
+  border-color: var(--tone-success-fg);
+  background: var(--tone-success-bg);
+  color: var(--tone-success-fg);
+}
+.ds-operation[data-tone="danger"] {
+  border-color: var(--tone-danger-fg);
+  background: var(--tone-danger-bg);
+  color: var(--tone-danger-fg);
+}
+.ds-operation-body {
+  flex: 1;
+  min-width: 0;
+}
+.ds-operation-title {
+  font-weight: var(--weight-bold);
+  overflow-wrap: anywhere;
+}
+.ds-operation-detail,
+.ds-operation-elapsed {
+  font-size: var(--size-xs);
+  overflow-wrap: anywhere;
+}
+.ds-operation-seen {
+  min-height: 2.75rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-operation-more summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--size-xs);
+}

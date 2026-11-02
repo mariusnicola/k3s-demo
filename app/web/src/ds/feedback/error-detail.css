@@ -1,0 +1,58 @@
+/* Error detail */
+.ds-error-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  text-align: left;
+}
+.ds-error-detail {
+  display: grid;
+  gap: var(--space-1);
+  container-type: inline-size;
+}
+.ds-error-row {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.ds-error-row dt {
+  font-size: var(--size-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.6;
+}
+.ds-error-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ds-correlation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+.ds-copy-result {
+  font-size: var(--size-xs);
+}
+.ds-technical summary {
+  display: list-item;
+  line-height: 2rem;
+  font-size: var(--size-xs);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+.ds-technical[open] summary {
+  margin-bottom: var(--space-2);
+}
+/* The panel's width decides, not the screen's: a side panel on a wide screen is as narrow as a phone. */
+@container (max-width: 30rem) {
+  .ds-error-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
+@media (max-width: 720px) {
+  .ds-technical summary {
+    line-height: 2.75rem;
+  }
+}

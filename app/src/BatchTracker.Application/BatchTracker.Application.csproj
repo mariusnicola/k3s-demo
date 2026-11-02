@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\BatchTracker.Domain\BatchTracker.Domain.csproj" />
+  </ItemGroup>
+</Project>

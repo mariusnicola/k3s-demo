@@ -1,0 +1,22 @@
+{{- $api := dict "liveness" (dict "httpGet" (dict "path" "/api/healthz" "port" 8080)) "readiness" (dict "httpGet" (dict "path" "/api/ready" "port" 8080)) -}}
+{{- /* Worker /ready needs the internal token and a probe cannot read a Secret, so readiness is TCP. */ -}}
+{{- $worker := dict "liveness" (dict "httpGet" (dict "path" "/healthz" "port" 8080)) "readiness" (dict "tcpSocket" (dict "port" 8080)) -}}
+{{- $dispatcher := dict "liveness" (dict "httpGet" (dict "path" "/healthz" "port" 8080)) "readiness" (dict "httpGet" (dict "path" "/status" "port" 8080)) -}}
+{{- $live := dict "liveness" (dict "httpGet" (dict "path" "/healthz" "port" 8080)) "readiness" (dict "httpGet" (dict "path" "/ready" "port" 8080)) -}}
+{{- $web := dict "liveness" (dict "httpGet" (dict "path" "/" "port" 8080)) "readiness" (dict "httpGet" (dict "path" "/" "port" 8080)) -}}
+{{- $proxies := dict "name" "TRUSTED_PROXIES" "value" (required "ingressPodNetwork missing" .Values.ingressPodNetwork) -}}
+{{- $workerEnv := list (dict "name" "WORKER_URL" "value" .Values.ingressController) (dict "name" "WORKER_HOST" "value" .Values.workerHost) -}}
+{{- $images := .Values.images | default dict -}}
+{{- include "bt.deployment" (dict "root" . "name" "api" "metrics" true "valuesKey" "api" "role" "api" "image" $images.api "probes" $api "scaled" true "extraEnv" (append $workerEnv $proxies) "secrets" true) }}
+---
+{{ include "bt.deployment" (dict "root" . "name" "worker" "metrics" true "valuesKey" "worker" "role" "worker" "image" $images.worker "probes" $worker "scaled" true "secrets" true) }}
+---
+{{ include "bt.deployment" (dict "root" . "name" "worker-node2" "metrics" true "valuesKey" "workerNode2" "role" "worker" "image" $images.worker "probes" $worker "scaled" true "secrets" true) }}
+---
+{{ include "bt.deployment" (dict "root" . "name" "dispatcher" "metrics" true "valuesKey" "dispatcher" "role" "dispatcher" "image" $images.dispatcher "probes" $dispatcher "serviceAccount" "dispatcher" "extraEnv" $workerEnv "secrets" true) }}
+---
+{{ include "bt.deployment" (dict "root" . "name" "dispatcher-node2" "metrics" true "valuesKey" "dispatcherNode2" "role" "dispatcher" "image" $images.dispatcher "probes" $dispatcher "serviceAccount" "dispatcher" "strategy" "Recreate" "extraEnv" $workerEnv "secrets" true) }}
+---
+{{ include "bt.deployment" (dict "root" . "name" "live" "valuesKey" "live" "role" "live" "image" $images.live "probes" $live "extraEnv" (list $proxies) "secrets" true) }}
+---
+{{ include "bt.deployment" (dict "root" . "name" "web" "valuesKey" "web" "role" "web" "image" $images.web "probes" $web "preStopSeconds" 5) }}

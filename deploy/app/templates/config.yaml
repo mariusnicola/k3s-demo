@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: batch-tracker-config
+data:
+  {{- $store := required "config.BATCH_STORE missing: the app refuses to start without it" .Values.config.BATCH_STORE }}
+  {{- .Values.config | toYaml | nindent 2 }}

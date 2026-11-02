@@ -1,0 +1,34 @@
+name: batchtracker-monitor
+services:
+  monitor:
+    container_name: batchtracker-monitor
+    image: batchtracker-monitor:local
+    build: .
+    restart: unless-stopped
+    mem_limit: ${CAP_MONITOR_MEMORY:?run deploy/setup.ps1}
+    cpus: ${CAP_MONITOR_CPU:?run deploy/setup.ps1}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - /etc/rancher/k3s/k3s.yaml:/kubeconfig:ro
+      # A release copy, so editing the working file changes nothing here.
+      - ../caps.json:/caps.json:ro
+      - ${CHANGES_DIR:?run deploy/setup.ps1}:/changes:ro
+    ports:
+      # Two container ports: only the loopback one serves the report.
+      - 127.0.0.1:5320:8081
+      - <HOST_IP>:5320:8080
+    environment:
+      HOST_IP: <HOST_IP>
+      INGRESS_ORIGIN: http://<INGRESS_IP>
+      # The ingress reaches this port from k3s-node2's address.
+      TRUSTED_PROXIES: <AGENT_IP>/32
+      CONTROL_PLANE_NAME: Node1
+      DEPLOYED_COMMIT: ${DEPLOYED_COMMIT:?run deploy/setup.ps1}
+      MONITOR_MACHINE_TOKEN: ${MONITOR_MACHINE_TOKEN:?run deploy/setup.ps1}
+      MONGO_CONNECTION: ${MONGO_CONNECTION:?run deploy/setup.ps1}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?run deploy/setup.ps1}
+      Logging__LogLevel__Default: Warning

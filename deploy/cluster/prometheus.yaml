@@ -1,0 +1,82 @@
+alertmanager:
+  enabled: false
+kube-state-metrics:
+  enabled: false
+prometheus-node-exporter:
+  enabled: false
+prometheus-pushgateway:
+  enabled: false
+server:
+  global:
+    scrape_interval: 15s
+  # The 1d bucket shows 120 buckets. The size cap keeps it off the rest of the node's disk.
+  retention: 120d
+  retentionSize: 38GB
+  persistentVolume:
+    enabled: true
+    size: 40Gi
+    storageClass: local-path
+# Worker scaling reads nginx, so nginx alone runs faster: a global 10 s would use up the 38 GB in about 83 days.
+# The app pods run at 5 s because a Line wave is shorter than 30 s, and a bucket needs two scrapes: 10 s buckets need 5 s.
+# They carry their own annotation, not prometheus.io/scrape, or the chart's kubernetes-pods job scrapes them too and every sum reads double.
+extraScrapeConfigs: |
+  - job_name: batch-tracker
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    honor_labels: true
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - batch-tracker
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_batch_tracker_scrape]
+        action: keep
+        regex: "true"
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        action: keep
+        regex: "8080"
+      - source_labels: [__meta_kubernetes_pod_phase]
+        action: drop
+        regex: Pending|Succeeded|Failed|Completed
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+  - job_name: ingress-nginx
+    scrape_interval: 10s
+    honor_labels: true
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - ingress-nginx
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_container_port_name]
+        action: keep
+        regex: metrics
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+  # The chart's cadvisor job dials a node's internal address. Node1's is Docker-internal, so from node2 it times out.
+  - job_name: kubernetes-nodes-cadvisor-external
+    scheme: https
+    metrics_path: /metrics/cadvisor
+    authorization:
+      credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tls_config:
+      insecure_skip_verify: true
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_node_address_ExternalIP]
+        action: keep
+        regex: .+
+      - source_labels: [__meta_kubernetes_node_address_ExternalIP]
+        target_label: __address__
+        replacement: $1:10250
+      - source_labels: [__meta_kubernetes_node_name]
+        target_label: instance

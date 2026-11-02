@@ -1,0 +1,47 @@
+{{- $nightly := required "caps.json entry missing: nightly" .Values.nightly -}}
+{{- $images := .Values.images | default dict -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly
+spec:
+  schedule: {{ .Values.nightlySchedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 180
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: batch-tracker
+            app.kubernetes.io/component: nightly
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          nodeSelector:
+            {{- required "caps.json node missing: nightly" $nightly.nodeSelector | toYaml | nindent 12 }}
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: nightly
+              image: {{ required "image missing: nightly" $images.nightly }}
+              imagePullPolicy: Never
+              command:
+                - sh
+                - -c
+                - 'exec curl -fsS --max-time 120 -X POST -H "X-Internal-Token: $INTERNAL_TOKEN" http://worker:8080/nightly/run'
+              envFrom:
+                - secretRef:
+                    name: {{ include "bt.secret" "nightly" }}
+              resources:
+                {{- required "caps.json limits missing: nightly" $nightly.resources | toYaml | nindent 16 }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]

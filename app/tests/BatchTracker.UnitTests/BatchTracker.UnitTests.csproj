@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\src\BatchTracker.Domain\BatchTracker.Domain.csproj" />
+    <ProjectReference Include="..\..\src\BatchTracker.Application\BatchTracker.Application.csproj" />
+    <ProjectReference Include="..\..\src\BatchTracker.Live\BatchTracker.Live.csproj" />
+    <ProjectReference Include="..\..\src\BatchTracker.Line\BatchTracker.Line.csproj" />
+  </ItemGroup>
+</Project>

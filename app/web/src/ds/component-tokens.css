@@ -1,0 +1,73 @@
+/* Component */
+:root {
+  --control-height: 2.5rem;
+  --control-font: var(--size-sm);
+  --icon-size: 1rem;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  --lever-handle-width: 1.5rem;
+  --lever-handle-height: 2.75rem;
+  --lever-handle-top: var(--bg-raised);
+  --lever-handle-bottom: var(--bg-sunken);
+  --lever-handle-border: var(--border-control);
+  --lever-handle-shadow: 0 2px 4px var(--scrim);
+  --lever-index: var(--accent);
+  --lever-grip: var(--border-control);
+  --lever-groove-height: 0.5rem;
+  --lever-groove-bg: var(--bg-sunken);
+  --lever-groove-lit: var(--accent);
+  --lever-groove-border: var(--border-control);
+  --lever-groove-shadow: inset 0 1px 2px var(--scrim);
+
+  --button-primary-bg: var(--accent);
+  --button-primary-bg-hover: var(--accent-hover);
+  --button-primary-bg-active: var(--accent-active);
+  --button-primary-fg: var(--text-on-accent);
+  --button-secondary-bg: transparent;
+  --button-secondary-bg-hover: var(--bg-hover);
+  --button-secondary-bg-active: var(--bg-sunken);
+  --button-secondary-fg: var(--text-primary);
+  --button-secondary-border: var(--border-control);
+  --button-danger-bg: var(--danger);
+  --button-danger-bg-hover: var(--danger-hover);
+  --button-danger-bg-active: var(--danger-active);
+  --button-danger-fg: var(--text-on-danger);
+  --button-disabled-bg: var(--bg-sunken);
+  --button-disabled-fg: var(--text-secondary);
+  --button-disabled-border: var(--border-strong);
+
+  --input-bg: var(--bg-sunken);
+  --input-fg: var(--text-primary);
+  --input-border: var(--border-control);
+  --input-border-error: var(--tone-danger-border);
+
+  --panel-bg: var(--bg-surface);
+  --panel-border: var(--border-subtle);
+  --panel-header-fg: var(--text-primary);
+
+  --table-header-bg: transparent;
+  --table-header-fg: var(--text-muted);
+  --table-row-border: var(--border-subtle);
+  --table-row-hover: var(--bg-hover);
+
+  --rail-done: var(--accent);
+  --rail-todo: var(--data-track);
+  --rail-failed: var(--danger);
+
+  --dot-ok: var(--map-dot);
+  --dot-fail: var(--map-fail);
+
+  --shell-bg: var(--bg-chrome);
+  --shell-fg: var(--text-on-chrome);
+  --shell-fg-muted: var(--text-on-chrome-muted);
+  --shell-border: var(--border-on-chrome);
+  --shell-focus: var(--focus-on-chrome);
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  :root {
+    --control-height: 2.75rem;
+    --control-font: var(--size-md);
+  }
+}

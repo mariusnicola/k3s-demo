@@ -1,0 +1,12 @@
+controller:
+  replicaCount: 1
+  config:
+    # A row for each browser failure, by id. $uri has no query, and nothing else a client writes goes in.
+    log-format-escape-json: "true"
+    log-format-upstream: '{"time":"$time_iso8601","id":"$http_x_correlation_id","status":$status,"upstream":"$upstream_status","path":"$uri"}'
+  service:
+    # Cluster would source-NAT every client to one address, and the apps key failure delays and rate limits on it.
+    # Local needs the controller on a node that can announce the address: caps.json pins it to k3s-node2.
+    externalTrafficPolicy: Local
+  metrics:
+    enabled: true

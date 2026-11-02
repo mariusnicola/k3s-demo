@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Batch Tracker: request rate and Worker scaling</title>
+<meta name="description" content="A distributed C# and .NET system on k3s with Service Bus, KEDA, Helm and Terraform. How the request rate slider drives load and how Workers scale.">
+<style>
+:root {
+  --bg: #0b2f36;
+  --bg-deep: #082429;
+  --surface: #0f3f49;
+  --surface-2: #124855;
+  --line: #1f5560;
+  --text: #eaf6f3;
+  --text-2: #c4dfdb;
+  --text-3: #a9cdc9;
+  --accent: #ffb398;
+  --accent-ink: #2a1208;
+  --link: #ffb398;
+  --good: #5fc79b;
+  --note-bg: #124855;
+  --shadow: 0 1px 0 rgba(255,255,255,.03), 0 18px 40px -24px rgba(0,0,0,.6);
+  --sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #eef5f4;
+    --bg-deep: #e2eeec;
+    --surface: #ffffff;
+    --surface-2: #f6faf9;
+    --line: #b5d2d1;
+    --text: #0b2f36;
+    --text-2: #24505a;
+    --text-3: #3a6570;
+    --accent: #b03d14;
+    --accent-ink: #ffffff;
+    --link: #a8380f;
+    --good: #0e5c3c;
+    --note-bg: #fde9e1;
+    --shadow: 0 1px 0 rgba(11,47,54,.04), 0 18px 40px -28px rgba(11,47,54,.35);
+    color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+a { color: var(--link); text-underline-offset: 3px; }
+a:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.wrap { width: min(100% - 2rem, 70rem); margin-inline: auto; }
+
+/* Header */
+.top { background: var(--bg-deep); border-bottom: 1px solid var(--line); }
+.top .wrap { padding-block: 4.5rem 3.5rem; }
+.eyebrow { font-size: .8125rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 1rem; }
+h1 { font-size: clamp(2.1rem, 5.5vw, 3.25rem); line-height: 1.08; margin: 0 0 1.5rem; letter-spacing: -.015em; max-width: 20ch; font-weight: 700; }
+.lede { font-size: 1.25rem; color: var(--text-2); max-width: 46rem; margin: 0 0 1.5rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.chips li { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: .25rem .8rem; font-size: .875rem; color: var(--text-2); }
+.toc { margin-top: 2.25rem; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-size: .9375rem; }
+.toc a { text-decoration: none; border-bottom: 1px solid transparent; }
+.toc a:hover { border-bottom-color: var(--accent); }
+
+/* Sections */
+section { padding-block: 4.5rem 1rem; }
+section + section { border-top: 1px solid var(--line); margin-top: 3rem; }
+.num { font-family: var(--mono); color: var(--accent); font-size: .875rem; letter-spacing: .08em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.125rem); line-height: 1.15; margin: .25rem 0 1.25rem; letter-spacing: -.01em; }
+h3 { font-size: 1.25rem; margin: 2.5rem 0 .75rem; }
+p { margin: 0 0 1rem; max-width: 46rem; }
+.measure { max-width: 46rem; }
+ul, ol { max-width: 46rem; padding-left: 1.25rem; }
+li { margin-bottom: .4rem; }
+code { overflow-wrap: anywhere; font-family: var(--mono); font-size: .9em; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .05em .35em; }
+
+/* Figures */
+figure { margin: 0; }
+.shot { background: var(--bg-deep); border: 1px solid var(--line); border-radius: 16px; padding: .75rem; box-shadow: var(--shadow); }
+.shot img { display: block; width: 100%; height: auto; border-radius: 10px; }
+figcaption { font-size: .9375rem; color: var(--text-3); margin-top: .65rem; max-width: 46rem; }
+figcaption strong { color: var(--text); }
+
+/* Callouts */
+.note { background: var(--note-bg); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 1rem 1.25rem; margin: 1.5rem 0; max-width: 46rem; }
+.note p:last-child { margin-bottom: 0; }
+
+/* Key facts */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .75rem; margin: 1.75rem 0; padding: 0; list-style: none; max-width: none; }
+.facts li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; margin: 0; }
+.facts b { display: block; font-size: 2rem; line-height: 1.1; font-weight: 700; }
+.facts span { font-size: .875rem; color: var(--text-3); }
+
+/* Diagram parts */
+.parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .75rem; margin: 1.5rem 0; padding: 0; list-style: none; max-width: none; }
+.parts li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1.1rem; margin: 0; }
+.parts h4 { margin: 0 0 .25rem; font-size: 1rem; }
+.parts p { margin: 0; font-size: .9375rem; color: var(--text-2); }
+.where { font-family: var(--mono); font-size: .75rem; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; }
+
+/* Steps */
+.steps { list-style: none; padding: 0; margin: 2rem 0; max-width: none; counter-reset: s; display: grid; gap: 1.5rem; }
+.step { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); gap: 1.75rem; align-items: start; counter-increment: s; margin: 0; padding: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+.step h3 { margin: 0 0 .5rem; display: flex; gap: .75rem; align-items: baseline; }
+.step h3::before { content: counter(s); flex: none; width: 2rem; height: 2rem; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: 1rem; font-weight: 700; display: inline-grid; place-items: center; transform: translateY(.1rem); }
+.step p { max-width: none; }
+.step .shot { padding: .5rem; }
+@media (max-width: 760px) { .step { grid-template-columns: 1fr; } }
+
+/* Table */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); margin: 1.5rem 0; }
+table { border-collapse: collapse; width: 100%; min-width: 38rem; font-size: .9375rem; }
+th, td { text-align: left; padding: .75rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8125rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); font-weight: 600; background: var(--surface-2); }
+tr:last-child td { border-bottom: 0; }
+td.n { font-variant-numeric: tabular-nums; font-weight: 600; }
+caption { text-align: left; padding: .75rem 1rem; color: var(--text-3); font-size: .875rem; caption-side: bottom; }
+
+/* Worked example */
+.work { display: grid; gap: .5rem; margin: 1.5rem 0; max-width: 46rem; }
+.work .row { display: grid; grid-template-columns: 7.5rem 1fr 7rem; gap: 1rem; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .7rem 1rem; }
+.work .rate { font-weight: 700; }
+.work .math { color: var(--text-2); font-family: var(--mono); font-size: .875rem; }
+.work .out { text-align: right; font-weight: 700; color: var(--accent); }
+@media (max-width: 560px) { .work .row { grid-template-columns: 1fr auto; } .work .math { grid-column: 1 / -1; order: 3; } }
+
+/* Compare */
+.compare { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.compare figure { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: .75rem; }
+.compare img { width: 100%; height: auto; display: block; border-radius: 10px; }
+.compare .big { display: flex; align-items: baseline; gap: .5rem; margin: .1rem .25rem .6rem; }
+.compare .big b { font-size: 2.25rem; line-height: 1; }
+.compare .big span { color: var(--text-3); font-size: .875rem; }
+.compare figcaption { margin-top: .5rem; font-size: .875rem; }
+@media (max-width: 1000px) { .compare { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .compare { grid-template-columns: 1fr; } }
+.strips { display: grid; gap: 1.25rem; margin: 1.5rem 0; }
+.strips figure { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: .9rem; }
+.strips img { width: 100%; height: auto; display: block; border-radius: 10px; }
+.strips figcaption { margin-top: .6rem; }
+
+/* Chain diagram */
+.chainwrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1rem; margin: 1.5rem 0; }
+.chainwrap svg { display: block; min-width: 46rem; width: 100%; height: auto; }
+.chainwrap .box { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.5; }
+.chainwrap .hot { fill: var(--surface-2); stroke: var(--accent); stroke-width: 2.5; }
+.chainwrap .t { fill: var(--text); font: 600 15px var(--sans); }
+.chainwrap .s { fill: var(--text-3); font: 400 12.5px var(--sans); }
+.chainwrap .l { fill: var(--accent); font: 600 12px var(--sans); }
+.chainwrap .arrow { stroke: var(--text-3); stroke-width: 2; fill: none; }
+.chainwrap .dash { stroke: var(--accent); stroke-width: 2; fill: none; stroke-dasharray: 6 5; }
+.chainwrap .head { fill: var(--text-3); }
+.chainwrap .headA { fill: var(--accent); }
+
+footer { margin-top: 5rem; border-top: 1px solid var(--line); background: var(--bg-deep); }
+footer .wrap { padding-block: 3rem 4rem; }
+.next { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+.next a { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1.25rem 1.4rem; text-decoration: none; color: var(--text); }
+.next a:hover { border-color: var(--accent); }
+.next b { display: block; font-size: 1.125rem; margin-bottom: .25rem; color: var(--link); }
+.next span { color: var(--text-2); font-size: .9375rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow">Batch Tracker</p>
+    <h1>Request rate and Worker scaling</h1>
+    <p class="lede">A distributed C# and .NET system running on k3s with Service Bus, KEDA scaling, Helm and Terraform. Batches move through Dose 1, Dose 2, inspection, shipment and close. A built-in production line creates them at a rate you choose, and the Workers that handle them scale up and down with it.</p>
+    <ul class="chips" aria-label="Stack">
+      <li>C# and .NET 9</li>
+      <li>k3s, two nodes</li>
+      <li>Service Bus queue</li>
+      <li>KEDA</li>
+      <li>Helm</li>
+      <li>Terraform</li>
+      <li>Prometheus</li>
+    </ul>
+    <nav class="toc" aria-label="Sections">
+      <a href="#picture">The picture</a>
+      <a href="#slider">The request rate slider</a>
+      <a href="#scaling">How Workers scale up</a>
+      <a href="#next">Where to go next</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="picture">
+  <span class="num">01</span>
+  <h2>The picture</h2>
+  <p>This is the Architecture view of the dashboard. Each small block is one pod, drawn on the node it runs on. Each dot is one batch step travelling along a real connection between services. Only the dots move.</p>
+
+  <figure>
+    <div class="shot"><img src="images/diagram.png" width="1600" height="1401" alt="Isometric diagram of the dashboard. Two cluster node plates, node1 and node2, hold blocks for API, Dispatcher, Worker, Live, web, nightly job, ingress, MetalLB, KEDA and Prometheus pods. A Docker plate holds MongoDB, Service Bus, Service Bus SQL, Cosmos DB, Line and Monitor. A load balancer plate and a browser plate sit below. Thin lines join them."></div>
+    <figcaption><strong>The dashboard diagram with the Line stopped.</strong> The counters on the blocks still hold the totals from the run described below.</figcaption>
+  </figure>
+
+  <h3>What each part is</h3>
+  <ul class="parts">
+    <li><span class="where">node1, node2</span><h4>The two cluster nodes</h4><p>The two flat plates. Pods are the blocks on them. The label says how many pods are drawn.</p></li>
+    <li><span class="where">node1</span><h4>API</h4><p>Takes every call from the browser and from the Line, checks permissions, and stores each batch change with a pending event. It stays at two pods.</p></li>
+    <li><span class="where">node1, node2</span><h4>Dispatcher</h4><p>One pod leads at a time. It marks stored events as sent, puts them on the Service Bus queue, and hands each one to a Worker over HTTP.</p></li>
+    <li><span class="where">node1, node2</span><h4>Worker</h4><p>Receives an event, writes the step record. This is the part that scales. Each node has its own Worker group, 1 to 5 pods each.</p></li>
+    <li><span class="where">node1</span><h4>Live</h4><p>Pushes every hop to this page over a WebSocket. That is how the dots move.</p></li>
+    <li><span class="where">node1</span><h4>Web and Nightly job</h4><p>Web serves this page. The nightly job runs once a day and flags batches stuck at Dose 1 past their window.</p></li>
+    <li><span class="where">node2</span><h4>Ingress</h4><p>The one entrance to the cluster. The browser, the Line and the Dispatcher all pass through it.</p></li>
+    <li><span class="where">both nodes</span><h4>Other pods</h4><p>KEDA, Prometheus, MetalLB and the network probe. They keep the system running and measure it.</p></li>
+    <li><span class="where">Docker</span><h4>MongoDB</h4><p>The store for batches. The Cosmos DB tile is grey because this setup uses MongoDB.</p></li>
+    <li><span class="where">Docker</span><h4>Service Bus</h4><p>The queue between the Dispatcher and the Workers, run as an emulator. Service Bus SQL is the database the emulator needs.</p></li>
+    <li><span class="where">Docker</span><h4>Line</h4><p>The production line. It creates batches and walks them to Closed. This is the traffic source.</p></li>
+    <li><span class="where">Docker</span><h4>Monitor</h4><p>Runs health checks and feeds the dashboard. It runs in Docker, outside the cluster.</p></li>
+    <li><span class="where">Load balancer</span><h4>Load balancer IP</h4><p>MetalLB gives the cluster one address on the local network. Traffic enters there.</p></li>
+    <li><span class="where">Browser</span><h4>This page</h4><p>Where you are. Browser calls go to the load balancer address and on to the ingress.</p></li>
+  </ul>
+</section>
+
+<section id="slider">
+  <span class="num">02</span>
+  <h2>The request rate slider</h2>
+  <p>The slider is called <b>Requested rate</b>. It sets how many new batches the production line starts each second. It sits in the Production line panel on the dashboard, next to the Start line and Stop line buttons.</p>
+
+  <ul class="facts" aria-label="Slider facts">
+    <li><b>batches / second</b><span>The unit. It counts new batches, not HTTP requests.</span></li>
+    <li><b>0 to 35</b><span>The range. The Line refuses anything outside it.</span></li>
+    <li><b>0.2</b><span>One step of the slider.</span></li>
+    <li><b>1</b><span>The resting position when the Line is stopped.</span></li>
+  </ul>
+
+  <div class="note">
+    <p><b>Batches are not requests.</b> At 35 batches per second the Line does not send 35 requests per second. It collects every step that is due and sends them together in one bundle request to the API, once per second. The number on the slider is how fast new batches begin.</p>
+  </div>
+
+  <h3>What one batch does</h3>
+  <p>Each new batch is created, moved to Dose 1, moved to Dose 2, inspected, shipped and closed. Before each move the Line waits until the Worker has finished the last step. One batch in ten fails inspection on purpose and stops there as Rejected. A slider value of 5 means a new batch about every 200 ms. At 35 it is about every 29 ms. At 0 the Line idles.</p>
+
+  <h3>Start it, move it, stop it</h3>
+  <ol class="steps">
+    <li class="step">
+      <div>
+        <h3>Find the panel</h3>
+        <p>Open the Dashboard and look in the right column for <b>Production line</b>. While the Line is stopped the badge says <b>Stopped</b> and the slider shows 1 batch per second. Below the slider it says "The line starts at this rate." Stop line is greyed out.</p>
+      </div>
+      <figure class="shot">
+        <img src="images/1-idle-line.png" width="352" height="595" alt="Production line panel with a Stopped badge. Counters show Started, Closed, Rejected, Started per second as Measuring, Slots in use 0 and Throttled 0. The Requested rate slider is at 1 batch per second. A Start line button is active and Stop line is greyed.">
+      </figure>
+    </li>
+    <li class="step">
+      <div>
+        <h3>Set the rate</h3>
+        <p>Drag the slider, or click it and use the arrow keys. End jumps to the maximum. The number at the top right of the slider reads out the value in words, for example <b>35 batches per second</b>. While the Line is stopped, moving the slider only sets the value. Nothing is sent yet.</p>
+      </div>
+      <figure class="shot">
+        <img src="images/2-slider-line.png" width="352" height="595" alt="The same panel, still Stopped, with the Requested rate slider pushed to the far right. The readout says 35 batches per second.">
+      </figure>
+    </li>
+    <li class="step">
+      <div>
+        <h3>Start the line</h3>
+        <p>Press <b>Start line</b>. The badge changes to <b>Running, 35 per second requested</b>. The Started counter begins to climb. <b>Started per second</b> is not what you asked for. It is what the Line's own counter measured, so it ramps up over the first seconds and can sit below the request.</p>
+      </div>
+      <figure class="shot">
+        <img src="images/4-peak-line.png" width="352" height="600" alt="Production line panel with a Running badge reading Running, 35 per second requested. Started per second reads 28.6 and Slots in use 235. The slider is at 35 batches per second. A Stop line button is active.">
+      </figure>
+    </li>
+    <li class="step">
+      <div>
+        <h3>Change it while it runs</h3>
+        <p>You can move the slider while the Line runs. The panel says "The new rate goes to the line when you let go." The Line takes the new value when you release the slider, not while you drag. Moving it to 0 leaves the Line running but idle.</p>
+      </div>
+      <div class="note" style="margin:0"><p>Slots in use counts batches still walking. The Line allows 500 at once. At that limit it slows its starts until some finish.</p></div>
+    </li>
+    <li class="step">
+      <div>
+        <h3>Stop the line</h3>
+        <p>Press <b>Stop line</b>. No new batch starts. Batches already walking keep going until they finish. The badge goes back to <b>Stopped</b> and the slider returns to its resting position of 1.</p>
+      </div>
+      <figure class="shot">
+        <img src="images/5-after-line.png" width="352" height="595" alt="Production line panel after the run. The badge says Stopped, Started per second reads Measuring, Slots in use is 0, and the slider is back at 1 batch per second.">
+      </figure>
+    </li>
+  </ol>
+
+  <h3>How the number becomes traffic</h3>
+  <p>The slider, the Line and the cluster are joined like this. The dashed path is the one KEDA watches.</p>
+
+  <figure class="chainwrap" aria-label="From slider to Workers">
+    <svg viewBox="0 0 1040 330" role="img" aria-labelledby="chain-t chain-d">
+      <title id="chain-t">From the slider to the Workers</title>
+      <desc id="chain-d">The slider sets the rate on the Line. The Line sends one bundle request per second to the API. The API stores events. The Dispatcher puts them on the Service Bus queue and passes them to Workers. The API counts new batches, Prometheus reads the count, and KEDA uses it to set the number of Workers.</desc>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="head"/></marker>
+        <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="headA"/></marker>
+      </defs>
+
+      <rect class="hot" x="10" y="40" width="130" height="70" rx="12"/>
+      <text class="t" x="75" y="70" text-anchor="middle">Slider</text>
+      <text class="s" x="75" y="90" text-anchor="middle">0 to 35 per second</text>
+
+      <rect class="box" x="180" y="40" width="130" height="70" rx="12"/>
+      <text class="t" x="245" y="70" text-anchor="middle">Line</text>
+      <text class="s" x="245" y="90" text-anchor="middle">a batch every 1/rate s</text>
+
+      <rect class="box" x="350" y="40" width="130" height="70" rx="12"/>
+      <text class="t" x="415" y="70" text-anchor="middle">API</text>
+      <text class="s" x="415" y="90" text-anchor="middle">2 pods, fixed</text>
+
+      <rect class="box" x="520" y="40" width="130" height="70" rx="12"/>
+      <text class="t" x="585" y="70" text-anchor="middle">Dispatcher</text>
+      <text class="s" x="585" y="90" text-anchor="middle">leader sends events</text>
+
+      <rect class="box" x="690" y="40" width="130" height="70" rx="12"/>
+      <text class="t" x="755" y="70" text-anchor="middle">Service Bus</text>
+      <text class="s" x="755" y="90" text-anchor="middle">queue</text>
+
+      <rect class="hot" x="860" y="40" width="170" height="70" rx="12"/>
+      <text class="t" x="945" y="70" text-anchor="middle">Workers</text>
+      <text class="s" x="945" y="90" text-anchor="middle">1 to 5 per node</text>
+
+      <path class="arrow" d="M140 75 H178" marker-end="url(#ah)"/>
+      <path class="arrow" d="M310 75 H348" marker-end="url(#ah)"/>
+      <path class="arrow" d="M480 75 H518" marker-end="url(#ah)"/>
+      <path class="arrow" d="M650 75 H688" marker-end="url(#ah)"/>
+      <path class="arrow" d="M820 75 H858" marker-end="url(#ah)"/>
+      <text class="l" x="245" y="30" text-anchor="middle">one bundle POST a second</text>
+
+      <rect class="box" x="350" y="215" width="130" height="70" rx="12"/>
+      <text class="t" x="415" y="245" text-anchor="middle">Counter</text>
+      <text class="s" x="415" y="265" text-anchor="middle">batches created</text>
+
+      <rect class="box" x="520" y="215" width="130" height="70" rx="12"/>
+      <text class="t" x="585" y="245" text-anchor="middle">Prometheus</text>
+      <text class="s" x="585" y="265" text-anchor="middle">rate over 20 s</text>
+
+      <rect class="hot" x="690" y="215" width="130" height="70" rx="12"/>
+      <text class="t" x="755" y="245" text-anchor="middle">KEDA</text>
+      <text class="s" x="755" y="265" text-anchor="middle">6.7 per Worker</text>
+
+      <path class="dash" d="M415 110 V215" marker-end="url(#ahA)"/>
+      <path class="dash" d="M480 250 H518" marker-end="url(#ahA)"/>
+      <path class="dash" d="M650 250 H688" marker-end="url(#ahA)"/>
+      <path class="dash" d="M820 250 H945 V112" marker-end="url(#ahA)"/>
+      <text class="l" x="880" y="240" text-anchor="middle">sets Worker count</text>
+    </svg>
+    <figcaption>Solid arrows carry batches. Dashed arrows carry the number KEDA scales on.</figcaption>
+  </figure>
+</section>
+
+<section id="scaling">
+  <span class="num">03</span>
+  <h2>How Workers scale up</h2>
+  <p>Workers do the work for every batch step, so they are the part that has to grow with load. KEDA adds and removes Worker pods. It does not look at CPU or at the queue. It looks at how fast new batches are being created.</p>
+
+  <h3>The rules, as written in the chart</h3>
+  <ul class="facts" aria-label="Scaling facts">
+    <li><b>6.7</b><span>new batches per second that one Worker is sized for</span></li>
+    <li><b>1 to 5</b><span>Worker pods on each node, so 2 to 10 in all</span></li>
+    <li><b>20 s</b><span>window the rate is averaged over</span></li>
+    <li><b>10 s</b><span>wait before scaling down. Kubernetes' usual wait is 300 s.</span></li>
+  </ul>
+  <ul>
+    <li><b>What KEDA watches.</b> A Prometheus query, <code>sum(rate(bt_batches_created_total[20s]))</code>. That is new batches created, averaged over the last 20 seconds. A burst of calls that creates no new batch adds no Worker.</li>
+    <li><b>Two Worker groups.</b> One on node1 and one on node2. Each is its own scaler with its own limit of 5, and each reads the same total. They ask for the same count.</li>
+    <li><b>The API does not scale here.</b> It has its own scaler, but its minimum and maximum are both 2, so it stays at two pods.</li>
+    <li><b>Scale up</b> follows the rate. <b>Scale down</b> waits 10 seconds of lower demand, not the 300 seconds Kubernetes would wait by default.</li>
+  </ul>
+
+  <h3>A worked example</h3>
+  <p>Each group wants enough pods so that no pod carries more than 6.7 batches per second. Kubernetes rounds up. Five pods cover up to 33.5 batches per second (5 x 6.7), so the top of the slider needs more than the cap allows.</p>
+  <div class="work" role="table" aria-label="Worked example">
+    <div class="row" role="row"><span class="rate">3 per second</span><span class="math">3 / 6.7 = 0.45, rounds up to 1</span><span class="out">1 + 1 = 2</span></div>
+    <div class="row" role="row"><span class="rate">10 per second</span><span class="math">10 / 6.7 = 1.49, rounds up to 2</span><span class="out">2 + 2 = 4</span></div>
+    <div class="row" role="row"><span class="rate">20 per second</span><span class="math">20 / 6.7 = 2.99, rounds up to 3</span><span class="out">3 + 3 = 6</span></div>
+    <div class="row" role="row"><span class="rate">28 per second</span><span class="math">28 / 6.7 = 4.18, rounds up to 5</span><span class="out">5 + 5 = 10</span></div>
+    <div class="row" role="row"><span class="rate">35 per second</span><span class="math">35 / 6.7 = 5.22, wants 6, capped at 5</span><span class="out">5 + 5 = 10</span></div>
+  </div>
+  <p>The totals are Workers across both nodes. The slider asks for up to 35, but the Workers top out at 10 whatever the rate.</p>
+
+  <h3>What I measured</h3>
+  <div class="note">
+    <p><b>One run on one machine.</b> One start at slider value 35, stopped through the dashboard control after 44 seconds. The cluster was a two-node k3s setup on a single PC. Times are the dashboard's own clock. These are not benchmarks.</p>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Read from the dashboard at each snapshot. The Started per second figure is the Line's own counter.</caption>
+      <thead><tr><th>Snapshot</th><th>Dashboard time</th><th>Slider</th><th>Started per second</th><th>Workers running</th></tr></thead>
+      <tbody>
+        <tr><td>1. Idle, Line stopped</td><td class="n">12:51:49 AM</td><td class="n">1</td><td class="n">Measuring (no rate yet)</td><td class="n">2</td></tr>
+        <tr><td>2. Slider moved to 35</td><td class="n">12:51:49 AM</td><td class="n">35</td><td class="n">Measuring (no rate yet)</td><td class="n">2</td></tr>
+        <tr><td>3. Running, Workers climbing</td><td class="n">12:52:11 AM</td><td class="n">35</td><td class="n">27.6</td><td class="n">6</td></tr>
+        <tr><td>4. Running, Workers at highest</td><td class="n">12:52:36 AM</td><td class="n">35</td><td class="n">28.6</td><td class="n">10</td></tr>
+        <tr><td>5. After stopping</td><td class="n">12:53:20 AM</td><td class="n">1</td><td class="n">Measuring (no rate yet)</td><td class="n">2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The timing, from polling the page every 2 to 3 seconds, so each step is good to about that:</p>
+  <ul>
+    <li>Start was pressed at slider 35. Workers stayed at 2 for about 18 seconds, then read 6 on the poll about 20 seconds in.</li>
+    <li>They read 10 on the poll about 31 seconds in, and stayed at 10 until the Line was stopped at 44 seconds.</li>
+    <li>After Stop, Workers stayed at 10 for 12 seconds, read 6 by 15 seconds and read 2 by 24 seconds.</li>
+    <li>Started per second settled at 27 to 29, below the 35 requested. I did not find out why, so I will not guess here.</li>
+    <li>The dashboard's health checks read 33 of 33 healthy at every poll, and Walks dropped read 0 on every snapshot.</li>
+  </ul>
+
+  <h3>The snapshots, side by side</h3>
+  <div class="compare">
+    <figure>
+      <div class="big"><b>2</b><span>Workers</span></div>
+      <img src="images/2-slider-line.png" width="352" height="595" alt="Production line panel stopped, slider set to 35 batches per second.">
+      <figcaption><strong>Slider at 35, Line stopped.</strong> 12:51:49 AM. Nothing sent yet.</figcaption>
+    </figure>
+    <figure>
+      <div class="big"><b>6</b><span>Workers</span></div>
+      <img src="images/3-climbing-line.png" width="352" height="599" alt="Production line panel running at 35 per second requested. Started per second 27.6, Slots in use 249.">
+      <figcaption><strong>Climbing.</strong> 12:52:11 AM. 27.6 started per second.</figcaption>
+    </figure>
+    <figure>
+      <div class="big"><b>10</b><span>Workers</span></div>
+      <img src="images/4-peak-line.png" width="352" height="600" alt="Production line panel running at 35 per second requested. Started per second 28.6, Slots in use 235.">
+      <figcaption><strong>At the highest.</strong> 12:52:36 AM. 28.6 started per second.</figcaption>
+    </figure>
+    <figure>
+      <div class="big"><b>2</b><span>Workers</span></div>
+      <img src="images/5-after-line.png" width="352" height="595" alt="Production line panel stopped after the run. The slider is back at 1 batch per second.">
+      <figcaption><strong>After stopping.</strong> 12:53:20 AM. Back to the resting count.</figcaption>
+    </figure>
+  </div>
+
+  <div class="strips">
+    <figure>
+      <img src="images/1-idle-workers.png" width="1600" height="366" alt="Workers panel with the Line stopped. Running 2, Busy in the last minute 0, Idle 2, Most possible 10. Two Worker pod tiles, each reading No work in the last minute.">
+      <figcaption><strong>Resting.</strong> Two Workers, one on each node. The panel says the most possible is 10.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/3-climbing-workers.png" width="1600" height="366" alt="Workers panel while the Line runs. Running 6, with six Worker pod tiles. Some say Working in the last minute and some say Busy unknown because they are new.">
+      <figcaption><strong>Climbing.</strong> Six Workers. The new pods show Busy unknown because a new pod can take up to 30 seconds to show a busy reading.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/4-peak-workers.png" width="1600" height="366" alt="Workers panel at the highest count. Running 10, Busy in the last minute 10, Most possible 10, with ten Worker pod tiles all reading Working in the last minute.">
+      <figcaption><strong>At the highest.</strong> Ten Workers, all busy. That is the cap.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/5-after-workers.png" width="1600" height="366" alt="Workers panel after stopping. Running 2, with two Worker pod tiles.">
+      <figcaption><strong>After stopping.</strong> Back to two.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <div class="shot"><img src="images/4-peak-node1.png" width="950" height="550" alt="Close view of node1 at the highest count. The Worker block reads 3,223 read and 10 of 10 pods ready. The API block reads 6,706 accepted. White dots travel along lines between pods."></div>
+    <figcaption><strong>The diagram at the highest count.</strong> The Worker block on node1 reads 10 of 10 pods ready. White dots are batch steps moving between services.</figcaption>
+  </figure>
+</section>
+
+</main>
+
+<footer id="next">
+  <div class="wrap">
+    <span class="num">04</span>
+    <h2>Where to go next</h2>
+    <div class="next">
+      <a href="README.md"><b>README.md</b><span>What the project is and how it is laid out.</span></a>
+      <a href="setup.md"><b>setup.md</b><span>How to build the cluster and run it yourself.</span></a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

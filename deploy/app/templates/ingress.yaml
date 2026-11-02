@@ -1,0 +1,109 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: batch-tracker
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 8080
+          - path: /line
+            pathType: Prefix
+            backend:
+              service:
+                name: line
+                port:
+                  number: {{ .Values.linePort }}
+          # Exact, so the rest of the monitor stays out of reach.
+          - path: /ingress/logs
+            pathType: Exact
+            backend:
+              service:
+                name: monitor
+                port:
+                  number: {{ .Values.monitorPort }}
+          - path: /metrics/series
+            pathType: Exact
+            backend:
+              service:
+                name: monitor
+                port:
+                  number: {{ .Values.monitorPort }}
+          # Exact: the rest of Live, POST /logs included, stays inside the cluster.
+          - path: /live/logs
+            pathType: Exact
+            backend:
+              service:
+                name: live
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 8080
+---
+# Its own Ingress: the long timeouts must apply to sockets only.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: batch-tracker-ws
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          # Exact, so the monitor's /health and /alive stay out of reach.
+          - path: /ws
+            pathType: Exact
+            backend:
+              service:
+                name: monitor
+                port:
+                  number: {{ .Values.monitorPort }}
+          - path: /ws/hops
+            pathType: Prefix
+            backend:
+              service:
+                name: live
+                port:
+                  number: 8080
+          - path: /line/ws
+            pathType: Exact
+            backend:
+              service:
+                name: line
+                port:
+                  number: {{ .Values.linePort }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: batch-tracker-worker
+  annotations:
+    nginx.ingress.kubernetes.io/whitelist-source-range: {{ required "podNetwork missing" .Values.podNetwork | quote }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.workerHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: worker
+                port:
+                  number: 8080

@@ -1,0 +1,43 @@
+{
+  "nodes": {
+    "k3s-node2": { "cpuMilli": 5000, "memoryMi": 10240 },
+    "k3s-node1": { "cpuMilli": 8000, "memoryMi": 8192 }
+  },
+  "reserved": [
+    { "name": "os-k3s-agent-node2", "node": "k3s-node2", "cpuMilli": 200, "memoryMi": 768, "requestCpuMilli": 200, "requestMemoryMi": 768 },
+    { "name": "os-k3s-agent-node1", "node": "k3s-node1", "cpuMilli": 100, "memoryMi": 512, "requestCpuMilli": 100, "requestMemoryMi": 512 },
+    { "name": "coredns", "namespace": "kube-system", "pod": "^coredns-", "node": "k3s-node1", "cpuMilli": 100, "memoryMi": 170, "requestCpuMilli": 100, "requestMemoryMi": 70 },
+    { "name": "metrics-server", "namespace": "kube-system", "pod": "^metrics-server-", "node": "k3s-node1", "cpuMilli": 100, "memoryMi": 100, "requestCpuMilli": 100, "requestMemoryMi": 70 },
+    { "name": "local-path", "namespace": "kube-system", "pod": "^local-path-provisioner-", "node": "k3s-node2", "cpuMilli": 50, "memoryMi": 32, "requestCpuMilli": 0, "requestMemoryMi": 0 }
+  ],
+  "pods": [
+    { "name": "ingress-nginx", "chart": "ingress-nginx", "namespace": "ingress-nginx", "pod": "^ingress-nginx-controller-", "container": "controller", "node": "k3s-node2", "replicas": 1, "path": "controller.resources", "nodePath": "controller.nodeSelector", "cpuMilli": 1000, "memoryMi": 256, "requestCpuMilli": 100, "requestMemoryMi": 128 },
+    { "name": "ingress-nginx-create", "chart": "ingress-nginx", "namespace": "ingress-nginx", "pod": "^ingress-nginx-admission-create-", "container": "create", "node": "k3s-node2", "replicas": 1, "transient": true, "path": "controller.admissionWebhooks.createSecretJob.resources", "nodePath": "controller.admissionWebhooks.patch.nodeSelector", "cpuMilli": 50, "memoryMi": 32, "requestCpuMilli": 10, "requestMemoryMi": 16 },
+    { "name": "ingress-nginx-patch", "chart": "ingress-nginx", "namespace": "ingress-nginx", "pod": "^ingress-nginx-admission-patch-", "container": "patch", "node": "k3s-node2", "replicas": 1, "transient": true, "path": "controller.admissionWebhooks.patchWebhookJob.resources", "nodePath": "controller.admissionWebhooks.patch.nodeSelector", "cpuMilli": 50, "memoryMi": 32, "requestCpuMilli": 10, "requestMemoryMi": 16 },
+    { "name": "metallb-controller", "chart": "metallb", "namespace": "metallb-system", "pod": "^metallb-controller-", "container": "controller", "node": "k3s-node2", "replicas": 1, "path": "controller.resources", "nodePath": "controller.nodeSelector", "cpuMilli": 100, "memoryMi": 64, "requestCpuMilli": 10, "requestMemoryMi": 32 },
+    { "name": "metallb-speaker", "chart": "metallb", "namespace": "metallb-system", "pod": "^metallb-speaker-", "container": "speaker", "node": "all", "replicas": 1, "path": "speaker.resources", "cpuMilli": 200, "memoryMi": 128, "requestCpuMilli": 10, "requestMemoryMi": 32 },
+    { "name": "prometheus-server", "chart": "prometheus", "namespace": "prometheus", "pod": "^prometheus-server-", "container": "prometheus-server", "node": "k3s-node2", "replicas": 1, "path": "server.resources", "nodePath": "server.nodeSelector", "cpuMilli": 500, "memoryMi": 768, "requestCpuMilli": 50, "requestMemoryMi": 384 },
+    { "name": "prometheus-reload", "chart": "prometheus", "namespace": "prometheus", "pod": "^prometheus-server-", "container": "prometheus-server-configmap-reload", "node": "k3s-node2", "replicas": 1, "path": "configmapReload.prometheus.resources", "cpuMilli": 20, "memoryMi": 32, "requestCpuMilli": 5, "requestMemoryMi": 16 },
+    { "name": "keda-operator", "chart": "keda", "namespace": "keda", "pod": "^keda-operator-(?!metrics-apiserver-)", "container": "keda-operator", "node": "k3s-node2", "replicas": 1, "path": "resources.operator", "nodePath": "nodeSelector", "cpuMilli": 200, "memoryMi": 128, "requestCpuMilli": 20, "requestMemoryMi": 48 },
+    { "name": "keda-metrics-apiserver", "chart": "keda", "namespace": "keda", "pod": "^keda-operator-metrics-apiserver-", "container": "keda-operator-metrics-apiserver", "node": "k3s-node2", "replicas": 1, "path": "resources.metricServer", "nodePath": "nodeSelector", "cpuMilli": 200, "memoryMi": 128, "requestCpuMilli": 20, "requestMemoryMi": 48 },
+    { "name": "keda-webhooks", "chart": "keda", "namespace": "keda", "pod": "^keda-admission-webhooks-", "container": "keda-admission-webhooks", "node": "k3s-node2", "replicas": 1, "path": "resources.webhooks", "nodePath": "nodeSelector", "cpuMilli": 100, "memoryMi": 64, "requestCpuMilli": 10, "requestMemoryMi": 32 },
+    { "name": "api", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^api-", "container": "api", "node": "k3s-node1", "replicas": 2, "path": "api.resources", "nodePath": "api.nodeSelector", "replicasPath": "api.maxReplicas", "cpuMilli": 350, "memoryMi": 256, "requestCpuMilli": 350, "requestMemoryMi": 96 },
+    { "name": "worker", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^worker-(?!node2-)", "container": "worker", "node": "k3s-node1", "replicas": 5, "path": "worker.resources", "nodePath": "worker.nodeSelector", "replicasPath": "worker.maxReplicas", "cpuMilli": 380, "memoryMi": 256, "requestCpuMilli": 200, "requestMemoryMi": 96 },
+    { "name": "worker-node2", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^worker-node2-", "container": "worker", "node": "k3s-node2", "replicas": 5, "path": "workerNode2.resources", "nodePath": "workerNode2.nodeSelector", "replicasPath": "workerNode2.maxReplicas", "cpuMilli": 380, "memoryMi": 256, "requestCpuMilli": 200, "requestMemoryMi": 96 },
+    { "name": "dispatcher", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^dispatcher-(?!node2-)", "container": "dispatcher", "node": "k3s-node1", "replicas": 2, "path": "dispatcher.resources", "nodePath": "dispatcher.nodeSelector", "replicasPath": "dispatcher.replicas", "cpuMilli": 300, "memoryMi": 192, "requestCpuMilli": 25, "requestMemoryMi": 96 },
+    { "name": "dispatcher-node2", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^dispatcher-node2-", "container": "dispatcher", "node": "k3s-node2", "replicas": 1, "path": "dispatcherNode2.resources", "nodePath": "dispatcherNode2.nodeSelector", "replicasPath": "dispatcherNode2.replicas", "cpuMilli": 300, "memoryMi": 192, "requestCpuMilli": 25, "requestMemoryMi": 96 },
+    { "name": "live", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^live-", "container": "live", "node": "k3s-node1", "replicas": 1, "path": "live.resources", "nodePath": "live.nodeSelector", "replicasPath": "live.replicas", "cpuMilli": 300, "memoryMi": 512, "requestCpuMilli": 25, "requestMemoryMi": 48 },
+    { "name": "web", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^web-", "container": "web", "node": "k3s-node1", "replicas": 1, "path": "web.resources", "nodePath": "web.nodeSelector", "replicasPath": "web.replicas", "cpuMilli": 50, "memoryMi": 48, "requestCpuMilli": 10, "requestMemoryMi": 16 },
+    { "name": "netprobe", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^netprobe-", "container": "netprobe", "node": "all", "replicas": 1, "path": "netprobe.resources", "cpuMilli": 50, "memoryMi": 64, "requestCpuMilli": 10, "requestMemoryMi": 32 },
+    { "name": "nightly", "chart": "batch-tracker", "namespace": "batch-tracker", "pod": "^(nightly|smoke-nightly)-", "container": "nightly", "node": "k3s-node1", "replicas": 1, "transient": true, "path": "nightly.resources", "nodePath": "nightly.nodeSelector", "cpuMilli": 50, "memoryMi": 32, "requestCpuMilli": 10, "requestMemoryMi": 8 }
+  ],
+  "containers": [
+    { "name": "batchtracker-servicebus", "compose": "servicebus", "env": "CAP_SERVICEBUS", "cpuMilli": 500, "memoryMi": 1024 },
+    { "name": "batchtracker-servicebus-sql", "compose": "servicebus", "env": "CAP_SQL", "cpuMilli": 1000, "memoryMi": 2048 },
+    { "name": "batchtracker-cosmos", "compose": "cosmos", "env": "CAP_COSMOS", "cpuMilli": 1500, "memoryMi": 2048 },
+    { "name": "batchtracker-monitor", "compose": "monitor", "env": "CAP_MONITOR", "cpuMilli": 500, "memoryMi": 256 },
+    { "name": "batchtracker-line", "compose": "line", "env": "CAP_LINE", "cpuMilli": 500, "memoryMi": 192 },
+    { "name": "batchtracker-mongo", "compose": "mongo", "env": "CAP_MONGO", "cpuMilli": 1000, "memoryMi": 1024 },
+    { "name": "batchtracker-node1", "compose": "node1", "env": "CAP_NODE1", "cpuMilli": 8000, "memoryMi": 8192 }
+  ]
+}

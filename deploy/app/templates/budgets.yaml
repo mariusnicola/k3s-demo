@@ -1,0 +1,13 @@
+{{- /* Only roles with two pods at all times: a budget on a single pod blocks every node drain. */ -}}
+{{- range $role := list "api" "worker" "dispatcher" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $role }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      batch-tracker/role: {{ $role }}
+{{- end }}

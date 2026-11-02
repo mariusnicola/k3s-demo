@@ -1,0 +1,74 @@
+{{- $values := required "caps.json entry missing: netprobe" .Values.netprobe -}}
+{{- $images := .Values.images | default dict -}}
+# Headless and listing unready pods, so a pod with a broken network stays a peer that fails.
+apiVersion: v1
+kind: Service
+metadata:
+  name: netprobe
+  labels:
+    app.kubernetes.io/name: batch-tracker
+    app.kubernetes.io/component: netprobe
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/component: netprobe
+  ports:
+    - name: http
+      port: 8080
+    - name: udp
+      port: 8081
+      protocol: UDP
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: netprobe
+  labels:
+    app.kubernetes.io/name: batch-tracker
+    app.kubernetes.io/component: netprobe
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: netprobe
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: batch-tracker
+        app.kubernetes.io/component: netprobe
+    spec:
+      automountServiceAccountToken: false
+      # Every node, a tainted one included: the pair checks cover the whole pod network.
+      tolerations:
+        - operator: Exists
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: netprobe
+          image: {{ required "image missing: netprobe" $images.netprobe }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+              protocol: UDP
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: PEERS
+              value: netprobe.{{ .Release.Namespace }}.svc.cluster.local.
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            {{- toYaml $values.resources | nindent 12 }}

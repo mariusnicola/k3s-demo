@@ -1,0 +1,127 @@
+/* Ids and key values */
+.ds-id {
+  font-family: var(--font-mono);
+  font-size: var(--size-xs);
+  overflow-wrap: anywhere;
+}
+.ds-id-full {
+  display: none;
+}
+@media (max-width: 720px) {
+  .ds-id[data-phone-full] .ds-id-short {
+    display: none;
+  }
+  .ds-id[data-phone-full] .ds-id-full {
+    display: inline;
+  }
+}
+.ds-key-values {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+.ds-key-value {
+  min-width: 0;
+}
+.ds-key-value dt {
+  font-size: var(--size-xs);
+  color: var(--text-secondary);
+}
+.ds-key-value dd {
+  overflow-wrap: anywhere;
+}
+.ds-key-values[data-figures] {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  gap: var(--space-2);
+}
+.ds-key-values[data-figures] .ds-key-value {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+}
+/* The size follows the tile, so a long number stays on one line for as long as it can. */
+.ds-key-values[data-figures] dd {
+  font-size: min(var(--size-xl), 19cqi);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+}
+.ds-key-values[data-figures] dt {
+  font-size: var(--size-2xs);
+}
+
+/* Timeline */
+.ds-timeline {
+  display: flex;
+  flex-direction: column;
+}
+.ds-timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.25rem 1fr;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+}
+.ds-timeline-item:last-child {
+  padding-bottom: 0;
+}
+.ds-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: calc(0.625rem - 1px);
+  top: 1rem;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-subtle);
+}
+.ds-timeline-item:last-child::before {
+  display: none;
+}
+.ds-timeline-marker {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: 0.3rem 0 0 0.25rem;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+.ds-timeline-item[data-recorded] .ds-timeline-marker {
+  background: var(--rail-done);
+  border-color: var(--rail-done);
+}
+.ds-timeline-item[data-rejected] .ds-timeline-marker {
+  background: var(--rail-failed);
+  border-color: var(--rail-failed);
+}
+.ds-timeline-body {
+  min-width: 0;
+}
+.ds-timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+.ds-timeline-time {
+  font-size: var(--size-xs);
+  color: var(--text-secondary);
+}
+.ds-timeline-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: 2px;
+  font-size: var(--size-xs);
+  color: var(--text-secondary);
+}
+.ds-timeline-meta .ds-icon {
+  width: 0.8rem;
+  height: 0.8rem;
+}

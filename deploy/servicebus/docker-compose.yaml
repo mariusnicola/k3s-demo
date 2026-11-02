@@ -1,0 +1,30 @@
+name: batchtracker
+services:
+  emulator:
+    container_name: batchtracker-servicebus
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:2.0.1
+    restart: unless-stopped
+    mem_limit: ${CAP_SERVICEBUS_MEMORY:?run deploy/setup.ps1}
+    cpus: ${CAP_SERVICEBUS_CPU:?run deploy/setup.ps1}
+    volumes:
+      - ./config.json:/ServiceBus_Emulator/ConfigFiles/Config.json:ro
+    ports:
+      - 127.0.0.1:5682:5672
+      - <HOST_IP>:5682:5672
+      - 127.0.0.1:5310:5300
+      - <HOST_IP>:5310:5300
+    environment:
+      SQL_SERVER: mssql
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+    depends_on:
+      - mssql
+  mssql:
+    container_name: batchtracker-servicebus-sql
+    image: mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04
+    restart: unless-stopped
+    mem_limit: ${CAP_SQL_MEMORY:?run deploy/setup.ps1}
+    cpus: ${CAP_SQL_CPU:?run deploy/setup.ps1}
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: smoke-probe
+description: Throwaway probe pods for infrastructure smoke tests
+version: 0.1.0

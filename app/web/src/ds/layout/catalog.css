@@ -1,0 +1,48 @@
+/* Catalog */
+.ds-catalog-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.ds-catalog-state {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+/* A chart takes the width it is given, so a wide default must not hold the column open. */
+.ds-catalog-state > * {
+  min-width: 0;
+}
+.ds-catalog-state-label {
+  font-family: var(--font-mono);
+  font-size: var(--size-xs);
+  color: var(--text-secondary);
+}
+.ds-catalog-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-2);
+}
+.ds-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--size-2xs);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.ds-swatch-chip {
+  height: 2rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+@media (max-width: 720px) {
+  .ds-catalog-state {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}

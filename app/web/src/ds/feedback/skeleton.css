@@ -1,0 +1,18 @@
+/* Skeleton */
+.ds-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ds-skeleton-row {
+  display: block;
+  height: 1.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--skeleton-base);
+  animation: ds-skeleton var(--duration-pulse) ease-in-out infinite alternate;
+}
+@keyframes ds-skeleton {
+  to {
+    background: var(--skeleton-shine);
+  }
+}

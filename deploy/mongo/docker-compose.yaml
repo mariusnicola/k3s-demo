@@ -1,0 +1,20 @@
+name: batchtracker-mongo
+services:
+  mongo:
+    container_name: batchtracker-mongo
+    image: mongo:8.0.34
+    restart: unless-stopped
+    mem_limit: ${CAP_MONGO_MEMORY:?run deploy/setup.ps1}
+    cpus: ${CAP_MONGO_CPU:?run deploy/setup.ps1}
+    # WiredTiger takes half the container's memory by default, which a 1024 MiB cap cannot spare.
+    command: ["--wiredTigerCacheSizeGB", "0.25"]
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - 127.0.0.1:27018:27017
+      - <HOST_IP>:27018:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?set it in deploy/mongo/.env}
+volumes:
+  mongo-data:

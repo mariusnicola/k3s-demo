@@ -1,0 +1,13 @@
+{{- range $name := list "api" "worker" "live" "web" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+spec:
+  selector:
+    batch-tracker/role: {{ $name }}
+  ports:
+    - port: 8080
+      targetPort: 8080
+{{- end }}

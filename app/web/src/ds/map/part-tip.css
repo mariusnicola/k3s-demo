@@ -1,0 +1,50 @@
+/* PartTip: the note that explains a part of the map */
+.ds-part-tip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: min(22rem, calc(100vw - 2rem));
+  padding: var(--space-3);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-overlay);
+  font-size: var(--size-xs);
+  line-height: 1.45;
+}
+.ds-part-tip[data-floating] {
+  position: fixed;
+  z-index: var(--z-tooltip);
+  visibility: hidden;
+}
+.ds-part-tip[data-placed] {
+  visibility: visible;
+  animation: ds-part-tip-in 120ms ease-out;
+}
+.ds-part-tip-name {
+  font-size: var(--size-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+.ds-part-tip-live {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--size-2xs);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+@keyframes ds-part-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-part-tip[data-placed] {
+    animation: none;
+  }
+}

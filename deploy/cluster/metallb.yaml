@@ -1,0 +1,3 @@
+# Layer 2 mode does not need the BGP backend.
+frrk8s:
+  enabled: false

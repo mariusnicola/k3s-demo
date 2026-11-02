@@ -1,0 +1,92 @@
+/* Dialog */
+.ds-dialog-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--scrim);
+}
+.ds-dialog {
+  position: fixed;
+  z-index: var(--z-overlay);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(calc(100vw - var(--space-5)), 30rem);
+  max-height: calc(100dvh - var(--space-5));
+  overflow: auto;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+}
+.ds-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) 0;
+}
+.ds-dialog-title {
+  margin: 0;
+  font-size: var(--size-lg);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-bold);
+}
+.ds-dialog-description {
+  padding: var(--space-1) var(--space-4) 0;
+  color: var(--text-secondary);
+}
+.ds-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+.ds-dialog-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+/* Tabs */
+.ds-tab-list {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ds-tab {
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--control-font);
+}
+.ds-tab:hover {
+  color: var(--text-primary);
+}
+.ds-tab[data-state="active"] {
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+  border-bottom-color: var(--accent);
+}
+.ds-tab-panel {
+  padding-top: var(--space-4);
+}
+
+/* Tooltip */
+.ds-tooltip {
+  z-index: var(--z-tooltip);
+  max-width: 24rem;
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-chrome);
+  color: var(--text-on-chrome);
+  border-radius: var(--radius-md);
+  font-size: var(--size-xs);
+  overflow-wrap: anywhere;
+}

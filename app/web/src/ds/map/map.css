@@ -1,0 +1,276 @@
+/* Cluster map */
+.ds-diagram {
+  min-width: 0;
+}
+.ds-diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-sans);
+}
+.ds-map-plate .ds-map-top {
+  fill: var(--map-plate-top);
+  stroke: var(--map-plate-edge);
+}
+.ds-map-plate .ds-map-left {
+  fill: var(--map-plate-left);
+}
+.ds-map-plate .ds-map-right {
+  fill: var(--map-plate-right);
+}
+.ds-map-plate-name {
+  fill: var(--map-plate-text);
+  font-size: 24px;
+  font-weight: var(--weight-semibold);
+}
+.ds-map-plate-note {
+  fill: var(--map-plate-note);
+  font-size: 18px;
+}
+.ds-map-route {
+  fill: none;
+  stroke: var(--map-route);
+  stroke-opacity: 0.35;
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+.ds-map-link {
+  fill: none;
+  stroke: var(--map-track);
+  stroke-opacity: 0.45;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.ds-diagram[data-lost] .ds-map-link {
+  stroke: var(--map-route);
+  stroke-dasharray: 4 6;
+}
+.ds-map-station .ds-map-top {
+  fill: var(--map-block-top);
+  stroke: var(--map-block-edge);
+}
+.ds-map-station .ds-map-left {
+  fill: var(--map-block-left);
+}
+.ds-map-station .ds-map-right {
+  fill: var(--map-block-right);
+}
+[data-health="failing"].ds-map-station .ds-map-top,
+[data-failed].ds-map-station .ds-map-top {
+  stroke: var(--map-fail);
+  stroke-width: 3;
+}
+.ds-map-title,
+.ds-map-count,
+.ds-map-health,
+.ds-map-pad-label,
+.ds-map-pod-label,
+.ds-map-pod-mark {
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--map-halo);
+  stroke-linejoin: round;
+}
+.ds-map-title {
+  fill: var(--map-text);
+  font-size: 20px;
+  font-weight: var(--weight-bold);
+  stroke-width: 4px;
+}
+.ds-map-count {
+  fill: var(--map-text);
+  font-size: 16px;
+  stroke-width: 3.5px;
+}
+.ds-map-health {
+  fill: var(--map-text-muted);
+  font-size: 16px;
+  stroke-width: 3.5px;
+}
+[data-health="failing"] .ds-map-health {
+  fill: var(--map-fail);
+  font-weight: var(--weight-bold);
+}
+.ds-map-pad .ds-map-top {
+  fill: var(--map-pad-top);
+}
+.ds-map-pad .ds-map-left,
+.ds-map-pad .ds-map-right {
+  fill: var(--map-plate-left);
+}
+.ds-map-pad-label {
+  fill: var(--map-text);
+  font-size: 15px;
+  font-weight: var(--weight-semibold);
+  stroke-width: 3px;
+}
+.ds-map-pod .ds-map-top {
+  fill: var(--map-pod-top);
+  stroke: var(--map-block-edge);
+}
+.ds-map-pod .ds-map-left {
+  fill: var(--map-pod-left);
+}
+.ds-map-pod .ds-map-right {
+  fill: var(--map-pod-right);
+}
+.ds-map-pod-label {
+  fill: var(--map-pod-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  stroke-width: 3px;
+}
+.ds-map-pod-mark {
+  fill: var(--map-text);
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  stroke-width: 3.5px;
+}
+.ds-flow-map svg {
+  max-height: 26rem;
+}
+.ds-flow-map[data-compact] .ds-map-title {
+  font-size: 30px;
+}
+.ds-flow-map[data-compact] .ds-map-count {
+  font-size: 28px;
+}
+.ds-map-pod[data-state="not-reported"] .ds-map-top {
+  fill: var(--map-pad-top);
+}
+.ds-map-pod[data-state="not-ready"] .ds-map-top,
+.ds-map-pod[data-state="unknown"] .ds-map-top {
+  fill: var(--map-warn);
+  stroke-dasharray: 4 3;
+}
+.ds-map-pod[data-state="pending"] .ds-map-top,
+.ds-map-pod[data-state="pending"] .ds-map-left,
+.ds-map-pod[data-state="pending"] .ds-map-right {
+  fill: none;
+  stroke: var(--map-route);
+  stroke-dasharray: 3 3;
+}
+.ds-map-pod[data-state="terminating"] .ds-map-top,
+.ds-map-pod[data-state="terminating"] .ds-map-left,
+.ds-map-pod[data-state="terminating"] .ds-map-right {
+  fill-opacity: 0.35;
+  stroke: var(--map-route);
+}
+.ds-map-pod[data-state="failed"] .ds-map-top,
+.ds-map-pod[data-state="failed"] .ds-map-left,
+.ds-map-pod[data-state="failed"] .ds-map-right {
+  fill: var(--map-fail);
+}
+.ds-diagram[data-stale] .ds-map-pod .ds-map-top,
+.ds-diagram[data-stale] .ds-map-pod .ds-map-left,
+.ds-diagram[data-stale] .ds-map-pod .ds-map-right {
+  fill: none;
+  stroke: var(--map-route);
+  stroke-dasharray: 3 3;
+}
+.ds-diagram[data-compact] .ds-map-pod-label {
+  display: none;
+}
+.ds-diagram[data-compact] .ds-map-title {
+  font-size: 25px;
+}
+.ds-diagram[data-compact] .ds-map-count,
+.ds-diagram[data-compact] .ds-map-health,
+.ds-diagram[data-compact] .ds-map-pad-label {
+  font-size: 21px;
+}
+.ds-diagram[data-compact] .ds-map-pod-mark {
+  font-size: 22px;
+}
+.ds-diagram[data-compact] .ds-map-plate-name {
+  font-size: 30px;
+}
+.ds-diagram[data-compact] .ds-map-plate-note {
+  font-size: 22px;
+}
+.ds-map-part {
+  cursor: help;
+}
+.ds-map-part:focus-visible {
+  outline: none;
+}
+.ds-map-part:hover polygon,
+.ds-map-part:focus-visible polygon {
+  stroke: var(--border-focus);
+  stroke-width: 2;
+}
+.ds-map-link,
+.ds-dot {
+  pointer-events: none;
+}
+.ds-dot-core {
+  fill: var(--dot-ok);
+}
+.ds-dot-halo {
+  fill: var(--dot-ok);
+  opacity: 0.25;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ds-pulse var(--duration-pulse) ease-out infinite;
+}
+.ds-dot-fail {
+  display: none;
+  fill: var(--dot-fail);
+}
+.ds-dot[data-ok="false"] .ds-map-part {
+  cursor: help;
+}
+.ds-map-part:focus-visible {
+  outline: none;
+}
+.ds-map-part:hover polygon,
+.ds-map-part:focus-visible polygon {
+  stroke: var(--border-focus);
+  stroke-width: 2;
+}
+.ds-map-link,
+.ds-dot {
+  pointer-events: none;
+}
+.ds-dot-core {
+  display: none;
+}
+.ds-dot[data-ok="false"] .ds-dot-fail {
+  display: inline;
+}
+.ds-dot[data-ok="false"] .ds-dot-halo {
+  fill: var(--dot-fail);
+}
+@keyframes ds-pulse {
+  from {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+.ds-diagram[data-reduced] .ds-dot-halo {
+  animation: none;
+  opacity: 0;
+}
+/* Phone: the map's words, as text a person can read. */
+.ds-map-words {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  font-size: var(--size-xs);
+}
+.ds-map-words > div {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--space-2);
+}
+.ds-map-words dt {
+  font-weight: var(--weight-semibold);
+}
+.ds-map-words dd {
+  margin: 0;
+  color: var(--text-secondary);
+}

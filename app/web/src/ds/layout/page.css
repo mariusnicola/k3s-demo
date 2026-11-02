@@ -1,0 +1,98 @@
+/* Page header */
+.ds-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.ds-page-heading {
+  min-width: 0;
+}
+.ds-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 1.5rem;
+  margin-bottom: var(--space-1);
+  color: var(--text-link);
+  font-size: var(--size-xs);
+}
+.ds-page-title {
+  font-size: var(--size-xl);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.ds-page-subtitle {
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+  max-width: var(--measure);
+}
+.ds-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+/* Panel */
+.ds-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  min-width: 0;
+}
+.ds-panel[data-ground] {
+  background: transparent;
+  border: 0;
+}
+.ds-panel[data-ground] > .ds-panel-header,
+.ds-panel[data-ground] > .ds-panel-body {
+  padding-inline: 0;
+}
+.ds-panel[data-ground] .ds-panel-title {
+  font-size: var(--size-lg);
+  letter-spacing: -0.02em;
+}
+.ds-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-4) 0;
+}
+.ds-panel-title {
+  font-size: var(--size-md);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-semibold);
+  color: var(--panel-header-fg);
+}
+.ds-panel-description {
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--size-xs);
+  max-width: var(--measure);
+}
+.ds-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ds-panel-body {
+  position: relative;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.ds-panel-body > .ds-button-slot > .ds-button {
+  align-self: flex-start;
+}
+.ds-panel-body > .ds-badge {
+  align-self: flex-start;
+}

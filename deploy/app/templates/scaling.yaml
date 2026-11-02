@@ -1,0 +1,9 @@
+{{- $api := required "caps.json entry missing: api" .Values.api -}}
+{{- $worker := required "caps.json entry missing: worker" .Values.worker -}}
+{{- $workerNode2 := required "caps.json entry missing: worker-node2" .Values.workerNode2 -}}
+{{- $workerThreshold := .Values.workerBatchesPerPod -}}
+{{- include "bt.scaledObject" (dict "root" . "name" "api" "minReplicas" 2 "scaleDownSeconds" 0 "maxReplicas" $api.maxReplicas "threshold" .Values.requestsPerPod "ingress" "batch-tracker" "service" "api") }}
+---
+{{ include "bt.scaledObject" (dict "root" . "name" "worker" "minReplicas" 1 "scaleDownSeconds" 10 "maxReplicas" $worker.maxReplicas "threshold" $workerThreshold "batches" true) }}
+---
+{{ include "bt.scaledObject" (dict "root" . "name" "worker-node2" "minReplicas" 1 "scaleDownSeconds" 10 "maxReplicas" $workerNode2.maxReplicas "threshold" $workerThreshold "batches" true) }}

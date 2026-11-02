@@ -1,0 +1,127 @@
+/* Lever: a native range drawn as a handle in a machined groove, over a printed scale */
+.ds-lever {
+  --lever-reach: calc(100% - var(--lever-handle-width));
+  --lever-stop: calc(var(--lever-handle-width) / 2 + var(--lever-at, 0) * var(--lever-reach));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.ds-lever-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+.ds-lever-value {
+  font-size: var(--size-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.ds-lever-input {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: var(--lever-handle-height);
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: grab;
+  /* A sideways drag belongs to the lever; an upright one still scrolls the page. */
+  touch-action: pan-y;
+}
+.ds-lever-input:active {
+  cursor: grabbing;
+}
+.ds-lever-input:focus-visible {
+  outline: none;
+}
+.ds-lever-input::-webkit-slider-runnable-track {
+  height: var(--lever-groove-height);
+  background: linear-gradient(to right, var(--lever-groove-lit) var(--lever-stop), var(--lever-groove-bg) var(--lever-stop));
+  border: 1px solid var(--lever-groove-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--lever-groove-shadow);
+}
+.ds-lever-input::-moz-range-track {
+  height: var(--lever-groove-height);
+  background: linear-gradient(to right, var(--lever-groove-lit) var(--lever-stop), var(--lever-groove-bg) var(--lever-stop));
+  border: 1px solid var(--lever-groove-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--lever-groove-shadow);
+}
+/* Grip lines either side of one index line, which is what reads against the scale. */
+.ds-lever-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: var(--lever-handle-width);
+  height: var(--lever-handle-height);
+  margin-top: calc((var(--lever-groove-height) - var(--lever-handle-height)) / 2 - 1px);
+  background:
+    linear-gradient(var(--lever-index), var(--lever-index)) center / 2px 100% no-repeat,
+    repeating-linear-gradient(to right, var(--lever-grip) 0 1px, transparent 1px 3px) center / 60% 50% no-repeat,
+    linear-gradient(to bottom, var(--lever-handle-top), var(--lever-handle-bottom));
+  border: 1px solid var(--lever-handle-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--lever-handle-shadow);
+}
+.ds-lever-input::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--lever-handle-width);
+  height: var(--lever-handle-height);
+  background:
+    linear-gradient(var(--lever-index), var(--lever-index)) center / 2px 100% no-repeat,
+    repeating-linear-gradient(to right, var(--lever-grip) 0 1px, transparent 1px 3px) center / 60% 50% no-repeat,
+    linear-gradient(to bottom, var(--lever-handle-top), var(--lever-handle-bottom));
+  border: 1px solid var(--lever-handle-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--lever-handle-shadow);
+}
+.ds-lever-input:focus-visible::-webkit-slider-thumb {
+  outline: var(--focus-ring-width) solid var(--border-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.ds-lever-input:focus-visible::-moz-range-thumb {
+  outline: var(--focus-ring-width) solid var(--border-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.ds-lever[data-disabled] .ds-lever-input {
+  cursor: not-allowed;
+}
+.ds-lever[data-disabled] .ds-lever-input::-webkit-slider-thumb {
+  border-style: dashed;
+  box-shadow: none;
+}
+.ds-lever[data-disabled] .ds-lever-input::-moz-range-thumb {
+  border-style: dashed;
+  box-shadow: none;
+}
+/* Inset by half a handle, so a tick sits under the index line at that value. */
+.ds-lever-scale {
+  display: flex;
+  justify-content: space-between;
+  padding-inline: calc(var(--lever-handle-width) / 2);
+  padding-bottom: 1.25rem;
+}
+.ds-lever-tick {
+  position: relative;
+  width: 1px;
+  height: 0.3125rem;
+  background: var(--text-muted);
+}
+.ds-lever-tick[data-major] {
+  height: 0.625rem;
+  background: var(--text-primary);
+}
+.ds-lever-number {
+  position: absolute;
+  top: calc(100% + 0.125rem);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--size-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}

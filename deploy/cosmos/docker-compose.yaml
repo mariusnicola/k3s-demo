@@ -1,0 +1,26 @@
+name: batchtracker-cosmos
+services:
+  emulator:
+    container_name: batchtracker-cosmos
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-latest
+    restart: unless-stopped
+    mem_limit: ${CAP_COSMOS_MEMORY:?run deploy/setup.ps1}
+    cpus: ${CAP_COSMOS_CPU:?run deploy/setup.ps1}
+    volumes:
+      - cosmos-data:/data
+    ports:
+      - 127.0.0.1:8091:8091
+      - <HOST_IP>:8091:8091
+      - 127.0.0.1:8092:8080
+      - <HOST_IP>:8092:8080
+      - 127.0.0.1:1244:1234
+      - <HOST_IP>:1244:1234
+    environment:
+      # The SDK connects to the port the gateway reports, so it must match the host port.
+      PORT: "8091"
+      # The .NET SDK does not support the emulator's default HTTP mode.
+      PROTOCOL: https
+      GATEWAY_PUBLIC_ENDPOINT: <HOST_IP>
+      ENABLE_TELEMETRY: "false"
+volumes:
+  cosmos-data:

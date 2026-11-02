@@ -1,0 +1,21 @@
+/* Spinner */
+.ds-spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: none;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ds-spin 800ms linear infinite;
+}
+.ds-spinner-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+}
+@keyframes ds-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,45 @@
+# Cluster node inside WSL. Mirrored WSL delivers inbound UDP only to user-space sockets, so
+# flannel's kernel VXLAN socket lives behind Docker's published port.
+name: batchtracker-node1
+services:
+  node1:
+    container_name: batchtracker-node1
+    image: rancher/k3s:v1.36.5-k3s1
+    hostname: k3s-node1
+    privileged: true
+    restart: unless-stopped
+    mem_limit: ${CAP_NODE1_MEMORY:?run deploy/setup.ps1}
+    cpus: ${CAP_NODE1_CPU:?run deploy/setup.ps1}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    tmpfs:
+      - /run
+      - /var/run
+    volumes:
+      - node1-data:/var/lib/rancher/k3s
+      # The server rejects a node whose stored password changes when the container is recreated.
+      - node1-identity:/etc/rancher/node
+      - /var/lib/rancher/k3s/server/node-token:/etc/k3s-node-token:ro
+    ports:
+      - 127.0.0.1:8472:8472/udp
+      - <HOST_IP>:8472:8472/udp
+      - 127.0.0.1:10250:10250
+      - <HOST_IP>:10250:10250
+    environment:
+      K3S_URL: https://<HOST_IP>:6443
+      K3S_TOKEN_FILE: /etc/k3s-node-token
+    # Docker rewrites the outer packet, so offloaded inner UDP and TCP checksums arrive invalid.
+    entrypoint:
+      - sh
+      - -c
+      - |
+        (until ethtool -K flannel.1 tx-checksum-ip-generic off >/dev/null 2>&1; do sleep 1; done) &
+        exec /bin/k3s agent --node-name k3s-node1 --node-external-ip <HOST_IP>
+volumes:
+  node1-data:
+    name: batchtracker-node1
+  node1-identity:
+    name: batchtracker-node1-identity

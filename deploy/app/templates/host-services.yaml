@@ -1,0 +1,22 @@
+{{- /* Monitor and Line run in Docker on this PC. Windows cannot reach its own LAN address in mirrored WSL, so browsers use the ingress. */ -}}
+{{- range $name, $port := dict "monitor" .Values.monitorPort "line" .Values.linePort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+spec:
+  ports:
+    - port: {{ $port }}
+      targetPort: {{ $port }}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ $name }}
+subsets:
+  - addresses:
+      - ip: {{ required "hostIp missing" $.Values.hostIp }}
+    ports:
+      - port: {{ $port }}
+{{- end }}

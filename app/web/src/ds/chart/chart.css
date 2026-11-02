@@ -1,0 +1,94 @@
+/* Chart */
+.ds-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.ds-chart-plot {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.ds-chart-plot svg {
+  display: block;
+}
+.ds-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--size-xs);
+  color: var(--text-secondary);
+}
+.ds-chart-key {
+  display: inline-block;
+  width: 0.75rem;
+  height: 2px;
+  margin-right: var(--space-1);
+  vertical-align: middle;
+  background: var(--series-1);
+}
+.ds-chart-key[data-series="1"] {
+  background: var(--series-2);
+}
+.ds-chart-key[data-series="2"] {
+  background: var(--series-3);
+}
+.ds-chart-key[data-series="3"] {
+  background: var(--series-4);
+}
+.ds-chart-grid {
+  stroke: var(--border-subtle);
+}
+.ds-chart-crosshair {
+  stroke: var(--border-strong);
+}
+.ds-chart-axis {
+  font-size: 11px;
+  fill: var(--text-muted);
+}
+.ds-chart-line {
+  fill: none;
+  stroke-width: 2;
+  stroke: var(--series-1);
+}
+.ds-chart-dot {
+  fill: var(--series-1);
+}
+.ds-chart-line[data-series="1"] {
+  stroke: var(--series-2);
+}
+.ds-chart-dot[data-series="1"] {
+  fill: var(--series-2);
+}
+.ds-chart-line[data-series="2"] {
+  stroke: var(--series-3);
+}
+.ds-chart-dot[data-series="2"] {
+  fill: var(--series-3);
+}
+.ds-chart-line[data-series="3"] {
+  stroke: var(--series-4);
+}
+.ds-chart-dot[data-series="3"] {
+  fill: var(--series-4);
+}
+.ds-chart-tooltip {
+  position: absolute;
+  top: 0;
+  z-index: var(--z-tooltip);
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-size: var(--size-xs);
+  color: var(--text-primary);
+  pointer-events: none;
+}
+.ds-chart-tooltip p {
+  margin: 0;
+}

@@ -1,0 +1,32 @@
+# Limits, nodes, replicas and images are passed by deploy/setup.ps1 from deploy/caps.json and the build.
+# Nothing here is a limit. A value missing at render time fails through `required`.
+ingressController: http://ingress-nginx-controller.ingress-nginx.svc.cluster.local
+workerHost: worker.batch-tracker.local
+hostIp: <HOST_IP>
+# Every pod. The dispatcher and the API reach the Worker through the ingress from here.
+podNetwork: <POD_CIDR>
+# k3s-node2's pods, where the ingress runs. A pod address changes on restart, so a single address would not last.
+ingressPodNetwork: <INGRESS_POD_CIDR>
+monitorPort: 5320
+linePort: 5321
+nightlySchedule: "0 2 * * *"
+prometheusUrl: http://prometheus-server.prometheus.svc.cluster.local
+requestsPerPod: "20"
+workerBatchesPerPod: "6.7"
+cpuPercent: "70"
+config:
+  ASPNETCORE_HTTP_PORTS: "8080"
+  DOTNET_gcServer: "0"
+  DOTNET_EnableDiagnostics: "0"
+  BATCH_STORE: mongo
+  MONGO_DATABASE: batch-tracker
+  MONGO_COLLECTION: batches
+  COSMOS_DATABASE: batch-tracker
+  COSMOS_CONTAINER: batches
+  SERVICEBUS_QUEUE: batch-events
+  LIVE_URL: http://live:8080
+  LEASE_NAMESPACE: batch-tracker
+  ALLOWED_ORIGINS: http://<INGRESS_IP>
+  # This cluster serves plain HTTP, and a Secure cookie would never come back.
+  COOKIE_SECURE: "false"
+  DEV_LOGIN_ENABLED: "true"

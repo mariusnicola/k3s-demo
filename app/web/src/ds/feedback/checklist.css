@@ -1,0 +1,61 @@
+/* Operation checklist */
+.ds-checklist {
+  display: grid;
+  max-width: 36rem;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ds-checklist li {
+  display: grid;
+  grid-template-columns: 1.125rem minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: start;
+  font-size: var(--size-xs);
+  line-height: 1.5;
+}
+.ds-step-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+}
+.ds-step-mark .ds-icon,
+.ds-step-mark .ds-spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+.ds-step-name {
+  overflow-wrap: anywhere;
+}
+.ds-checklist [data-mark="done"] .ds-step-name,
+.ds-checklist [data-mark="running"] .ds-step-name,
+.ds-checklist [data-mark="failed"] .ds-step-name {
+  font-weight: var(--weight-semibold);
+}
+.ds-step-note {
+  text-align: end;
+  white-space: nowrap;
+}
+.ds-operation .ds-checklist {
+  max-height: 30dvh;
+  overflow-y: auto;
+}
+.ds-operations[data-inline] .ds-checklist {
+  max-height: none;
+}
+.ds-operation:has(.ds-checklist),
+.ds-operation:has(.ds-error-detail) {
+  align-items: flex-start;
+}
+.ds-operation .ds-error-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.ds-operation .ds-error-block {
+  margin-top: var(--space-2);
+}

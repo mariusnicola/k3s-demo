@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: probe
+          image: mcr.microsoft.com/dotnet/runtime-deps:9.0-bookworm-slim
+          # The probe binary is copied in after the pod starts.
+          command: ["sh", "-c", "until [ -x /tmp/probe ]; do sleep 1; done; exec /tmp/probe serve 8081"]
+          ports:
+            - containerPort: 8081
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - port: 8081
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.ingressHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}
+                port:
+                  number: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-scaled
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-scaled
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-scaled
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: idle
+          image: mcr.microsoft.com/dotnet/runtime-deps:9.0-bookworm-slim
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 10m
+              memory: 32Mi
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Release.Name }}-scaled
+spec:
+  scaleTargetRef:
+    name: {{ .Release.Name }}-scaled
+  pollingInterval: 5
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-server.prometheus.svc.cluster.local
+        # Reaches 2 only while Prometheus holds the ingress target, so KEDA cannot pass on a constant.
+        query: count(up{namespace="ingress-nginx"} == 1) + 1
+        threshold: "1"

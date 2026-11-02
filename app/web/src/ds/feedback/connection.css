@@ -1,0 +1,50 @@
+/* Connection. One box for every state, and the fault detail floats, so a state change never moves the panel. */
+.ds-connection {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: min(100%, 20rem);
+  min-height: 1.5rem;
+  font-size: var(--size-xs);
+  color: var(--text-secondary);
+}
+.ds-connection-more {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  width: min(20rem, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-2) var(--space-3);
+  background: var(--tone-warning-bg);
+  color: var(--tone-warning-fg);
+  border: 1px solid var(--tone-warning-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-overlay);
+}
+.ds-connection-label {
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+/* Dot, spinner and warning take one width, so the words beside them never shift. */
+.ds-connection > .ds-icon,
+.ds-connection > .ds-spinner {
+  flex: 0 0 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+.ds-connection-mark {
+  flex: none;
+  margin-inline: 0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--tone-success-border);
+  border-radius: 50%;
+}
+.ds-connection[data-status="lost"] .ds-connection-label {
+  color: var(--tone-warning-fg);
+}
